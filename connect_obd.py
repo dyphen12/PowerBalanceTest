@@ -43,6 +43,20 @@ try:
         else:
             print("❌ Error al recuperar los códigos de diagnóstico o no hay datos disponibles.")
 
+        # Probar otros comandos
+        print("🔍 Probando otros comandos...")
+        rpm_response = connection.query(obd.commands.RPM)
+        if rpm_response and rpm_response.value:
+            print("RPM:", rpm_response.value)
+        else:
+            print("❌ No se pudo recuperar el RPM.")
+
+        speed_response = connection.query(obd.commands.SPEED)
+        if speed_response and speed_response.value:
+            print("Velocidad:", speed_response.value)
+        else:
+            print("❌ No se pudo recuperar la velocidad.")
+
     else:
         print("❌ No se pudo conectar al vehículo. Verifique el puerto y el dispositivo.")
 
