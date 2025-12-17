@@ -73,11 +73,16 @@ class OBDBackend:
         if not self.connection or not self.connection.is_connected():
             return None
         try:
-            speed = self.connection.query(obd.commands.SPEED)
-            if speed and speed.value:
-                return speed.value.magnitude
-            else:
-                return None
+            print("🔍 Recuperando RPM...")
+            cmd = obd.commands.SPEED # select an OBD command (sensor)
+
+            response = connection.query(cmd) # send the command, and parse the response
+
+            #print(response.value) # returns unit-bearing values thanks to Pint
+            #print(response.value.to("mph")) # user-friendly unit conversions
+
+            return response.value.to("mph")
+        
         except Exception as e:
             print(f"❌ Error al leer velocidad: {e}")
             return None
