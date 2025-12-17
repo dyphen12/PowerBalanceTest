@@ -1,6 +1,6 @@
 # test_rpm.py
 import time
-from backends import OBDBackend
+from backends.obd_backend import OBDBackend
 
 # Inicializar y conectar
 backend = OBDBackend()
