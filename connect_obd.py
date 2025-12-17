@@ -38,6 +38,16 @@ try:
         print(response.value) # returns unit-bearing values thanks to Pint
         print(response.value.to("mph")) # user-friendly unit conversions
 
+        print("🔍 Recuperando DTCs...")
+
+        cmd = obd.commands.GET_DTC
+
+        response = connection.query(cmd) # send the command, and parse the response
+
+        print(response.value) 
+
+
+
     else:
         print("❌ No se pudo conectar al vehículo. Verifique el puerto y el dispositivo.")
 
