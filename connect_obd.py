@@ -22,44 +22,21 @@ try:
         print("❌ Selección inválida.")
         exit()
 
-    # Configurar un tiempo de espera más largo para la conexión
-    connection = obd.OBD(ports[selected_index], fast=False, timeout=30)  # Conectar al puerto seleccionado con timeout extendido
+    # Conectar al puerto seleccionado
+    connection = obd.OBD(ports[selected_index], fast=False, timeout=30)
 
     if connection.is_connected():
         print("✅ Conectado al vehículo")
         print("Protocolo:", connection.protocol_name())
 
-        # Obtener códigos de diagnóstico de fallas (DTCs)
-        print("🔍 Recuperando códigos de diagnóstico de fallas (DTCs)...")
-        dtc_response = connection.query(obd.commands.GET_DTC)
-        time.sleep(10)  # Delay to ensure the adapter has time to process
+        # Recuperar RPM
+        print("🔍 Recuperando RPM...")
+        cmd = obd.commands.SPEED # select an OBD command (sensor)
 
-        if dtc_response and dtc_response.value:
-            dtcs = dtc_response.value  # Lista de códigos DTC
-            if dtcs:
-                print("✅ Códigos de diagnóstico encontrados:")
-                for code, description in dtcs:
-                    print(f"- {code}: {description}")
-            else:
-                print("✅ No se encontraron códigos de diagnóstico.")
-        else:
-            print("❌ Error al recuperar los códigos de diagnóstico o no hay datos disponibles.")
+        response = connection.query(cmd) # send the command, and parse the response
 
-        # Probar otros comandos
-        print("🔍 Probando otros comandos...")
-        rpm_response = connection.query(obd.commands.RPM)
-        time.sleep(1)  # Delay between commands
-        if rpm_response and rpm_response.value:
-            print("RPM:", rpm_response.value)
-        else:
-            print("❌ No se pudo recuperar el RPM.")
-
-        speed_response = connection.query(obd.commands.SPEED)
-        time.sleep(1)  # Delay between commands
-        if speed_response and speed_response.value:
-            print("Velocidad:", speed_response.value)
-        else:
-            print("❌ No se pudo recuperar la velocidad.")
+        print(response.value) # returns unit-bearing values thanks to Pint
+        print(response.value.to("mph")) # user-friendly unit conversions
 
     else:
         print("❌ No se pudo conectar al vehículo. Verifique el puerto y el dispositivo.")
