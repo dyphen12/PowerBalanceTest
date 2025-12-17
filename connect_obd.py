@@ -2,12 +2,11 @@ import obd
 
 print("🔍 Buscando conexión OBD2...")
 
-# None = autodetectar puerto (recomendado primero)
-connection = obd.OBD(port=None, baudrate=38400, fast=False)
+connection = obd.OBD() # auto-connects to USB or RF port
 
-if connection.is_connected():
-    print("✅ Conectado correctamente al OBD2")
-    print(f"📍 Puerto: {connection.port}")
-    print(f"🚗 Protocolo: {connection.protocol_name()}")
-else:
-    print("❌ No se pudo conectar al OBD2")
+cmd = obd.commands.SPEED # select an OBD command (sensor)
+
+response = connection.query(cmd) # send the command, and parse the response
+
+print(response.value) # returns unit-bearing values thanks to Pint
+print(response.value.to("mph")) # user-friendly unit conversions
