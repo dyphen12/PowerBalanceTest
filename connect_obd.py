@@ -46,6 +46,14 @@ try:
 
         print(response.value) 
 
+        print("\n🧪 Probando MODE $06...")
+
+        cmd = obd.commands.MONITOR_MISFIRE_CYLINDER_1
+
+        response = connection.query(cmd) # send the command, and parse the response
+
+        print(response.value)
+
 
 
     else:
