@@ -5,7 +5,7 @@ print("🔍 Buscando conexión OBD2...")
 ports = obd.scan_serial()
 print("Puertos encontrados:", ports)
 
-connection = obd.OBD(ports[1])  # COM12
+connection = obd.OBD(ports[0])  # COM12
 
 if connection.is_connected():
     print("✅ Conectado al vehículo")
