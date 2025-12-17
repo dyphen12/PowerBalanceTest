@@ -32,7 +32,7 @@ try:
         # Obtener códigos de diagnóstico de fallas (DTCs)
         print("🔍 Recuperando códigos de diagnóstico de fallas (DTCs)...")
         dtc_response = connection.query(obd.commands.GET_DTC)
-        time.sleep(1)  # Delay to ensure the adapter has time to process
+        time.sleep(10)  # Delay to ensure the adapter has time to process
 
         if dtc_response and dtc_response.value:
             dtcs = dtc_response.value  # Lista de códigos DTC
