@@ -57,11 +57,11 @@ class OBDBackend:
             return None
 
         try:
-            rpm_response = self.connection.query(obd.commands.RPM)
-            if rpm_response and rpm_response.value:
-                return rpm_response.value.magnitude  # devuelve solo el número
-            else:
-                return None
+            cmd = obd.commands.RPM # select an OBD command (sensor)
+            response = self.connection.query(cmd)
+            return response.value.to("mph")
+
+          
         except Exception as e:
             print(f"❌ Error al leer RPM: {e}")
             return None
@@ -73,7 +73,7 @@ class OBDBackend:
         if not self.connection or not self.connection.is_connected():
             return None
         try:
-            print("🔍 Recuperando RPM...")
+            print("🔍 Recuperando Velocidad...")
             cmd = obd.commands.SPEED # select an OBD command (sensor)
 
             response = self.connection.query(cmd) # send the command, and parse the response
