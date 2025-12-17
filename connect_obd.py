@@ -40,7 +40,7 @@ try:
 
         print("🔍 Recuperando DTCs...")
 
-        cmd = obd.commands.GET_DTC
+        cmd = obd.commands.GET_CURRENT_DTC
 
         response = connection.query(cmd) # send the command, and parse the response
 
