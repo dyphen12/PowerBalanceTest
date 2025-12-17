@@ -17,13 +17,24 @@ class OBDBackend:
         ports = obd.scan_serial()
         if not ports:
             print("❌ No se encontraron puertos OBD2 disponibles.")
-            return False
+            exit()
 
         print("Puertos encontrados:", ports)
 
+        # Permitir al usuario seleccionar el puerto
+        print("Seleccione el puerto al que desea conectarse:")
+        for i, port in enumerate(ports):
+            print(f"[{i}] {port}")
+
         try:
-            # Intentar conectar al primer puerto disponible
-            self.connection = obd.OBD(ports[0], fast=False, timeout=30)
+            selected_index = int(input("Ingrese el número del puerto: "))
+            if selected_index < 0 or selected_index >= len(ports):
+                print("❌ Selección inválida.")
+                exit()
+
+            # Conectar al puerto seleccionado
+            self.connection = obd.OBD(ports[selected_index], fast=False, timeout=30)
+
 
             if self.connection.is_connected():
                 print("✅ Conectado al vehículo")
@@ -41,28 +52,84 @@ class OBDBackend:
         """
         Recupera las RPM del vehículo.
         """
-        if self.connection and self.connection.is_connected():
-            print("🔍 Recuperando RPM...")
-            try:
-                rpm_response = self.connection.query(obd.commands.RPM)
-
-                if rpm_response and rpm_response.value:
-                    print("RPM:", rpm_response.value)
-                    return rpm_response.value
-                else:
-                    print("❌ No se pudo recuperar el RPM.")
-                    return None
-
-            except Exception as e:
-                print(f"❌ Error al recuperar el RPM: {e}")
-                return None
-        else:
-            print("❌ No hay conexión con el dispositivo OBD2.")
+        if not self.connection or not self.connection.is_connected():
+            print("❌ No hay conexión OBD2.")
             return None
+
+        try:
+            rpm_response = self.connection.query(obd.commands.RPM)
+            if rpm_response and rpm_response.value:
+                return rpm_response.value.magnitude  # devuelve solo el número
+            else:
+                return None
+        except Exception as e:
+            print(f"❌ Error al leer RPM: {e}")
+            return None
+
+    def read_speed(self):
+        """
+        Recupera la velocidad del vehículo.
+        """
+        if not self.connection or not self.connection.is_connected():
+            return None
+        try:
+            speed = self.connection.query(obd.commands.SPEED)
+            if speed and speed.value:
+                return speed.value.magnitude
+            else:
+                return None
+        except Exception as e:
+            print(f"❌ Error al leer velocidad: {e}")
+            return None
+
+    def read_misfires(self):
+        """
+        Intenta leer los misfire counts de los cilindros (Mode $06)
+        Devuelve una lista de 8 elementos con los conteos de misfire.
+        """
+        if not self.connection or not self.connection.is_connected():
+            return [0]*8
+
+        misfire_cmds = [
+            obd.commands.MONITOR_MISFIRE_CYLINDER_1,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_2,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_3,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_4,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_5,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_6,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_7,
+            obd.commands.MONITOR_MISFIRE_CYLINDER_8,
+        ]
+
+        misfires = []
+        for cmd in misfire_cmds:
+            if cmd is None:
+                misfires.append(0)
+                continue
+            try:
+                response = self.connection.query(cmd)
+                if response and response.value is not None:
+                    misfires.append(response.value)
+                else:
+                    misfires.append(0)
+            except:
+                misfires.append(0)
+        return misfires
 
     def read_power_balance(self):
         """
-        Devolverá un array con los valores de Power Balance reales desde la F150.
+        Devuelve un array de 8 elementos con la contribución de cada cilindro.
+        Por ahora usa misfire counts o placeholder (0 si todo bien)
         """
-        # Placeholder temporal
-        return [0]*8
+        misfires = self.read_misfires()
+        # Placeholder simple: cilindro con misfire = -50, cilindro sano = 0
+        return [-50 if m > 0 else 0 for m in misfires]
+
+    def disconnect(self):
+        """
+        Cierra la conexión OBD.
+        """
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            print("🔌 Conexión OBD cerrada.")

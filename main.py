@@ -17,10 +17,10 @@ else:
 # --------------------------------
 # Ejecutar prueba estática
 # --------------------------------
-values = backend.read_power_balance()
+#values = backend.read_power_balance()
 #plot_power_balance(values, title="Power Balance Test — Backend Seleccionado")
 
 # --------------------------------
 # Ejecutar animación
 # --------------------------------
-animate_power_balance(lambda *_: backend.read_power_balance(), weak_cyl=None, misfire_cyl=None, frames=100, interval=300)
+#animate_power_balance(lambda *_: backend.read_power_balance(), weak_cyl=None, misfire_cyl=None, frames=100, interval=300)
