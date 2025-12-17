@@ -59,7 +59,7 @@ class OBDBackend:
         try:
             cmd = obd.commands.RPM # select an OBD command (sensor)
             response = self.connection.query(cmd)
-            return response.value.to("mph")
+            return response
 
           
         except Exception as e:
