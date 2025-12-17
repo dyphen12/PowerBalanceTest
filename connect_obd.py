@@ -21,7 +21,8 @@ try:
         print("❌ Selección inválida.")
         exit()
 
-    connection = obd.OBD(ports[selected_index])  # Conectar al puerto seleccionado
+    # Configurar un tiempo de espera más largo para la conexión
+    connection = obd.OBD(ports[selected_index], fast=False, timeout=30)  # Conectar al puerto seleccionado con timeout extendido
 
     if connection.is_connected():
         print("✅ Conectado al vehículo")
