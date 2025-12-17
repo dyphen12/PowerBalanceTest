@@ -12,7 +12,7 @@ print("🔄 Mostrando RPM en tiempo real. Presiona Ctrl+C para salir.\n")
 
 try:
     while True:
-        rpm = backend.read_rpm()
+        rpm = backend.read_speed()
         if rpm is not None:
             print(f"RPM: {rpm}")
         else:
