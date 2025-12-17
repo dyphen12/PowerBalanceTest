@@ -27,6 +27,22 @@ try:
     if connection.is_connected():
         print("✅ Conectado al vehículo")
         print("Protocolo:", connection.protocol_name())
+
+        # Obtener códigos de diagnóstico de fallas (DTCs)
+        print("🔍 Recuperando códigos de diagnóstico de fallas (DTCs)...")
+        dtc_response = connection.query(obd.commands.GET_DTC)
+
+        if dtc_response.is_successful():
+            dtcs = dtc_response.value  # Lista de códigos DTC
+            if dtcs:
+                print("✅ Códigos de diagnóstico encontrados:")
+                for code, description in dtcs:
+                    print(f"- {code}: {description}")
+            else:
+                print("✅ No se encontraron códigos de diagnóstico.")
+        else:
+            print("❌ Error al recuperar los códigos de diagnóstico.")
+
     else:
         print("❌ No se pudo conectar al vehículo. Verifique el puerto y el dispositivo.")
 
