@@ -14,6 +14,7 @@ else:
     backend = OBDBackend(port="COM3", baudrate=38400)
     backend.connect()
 
+backend.read_misfires()
 backend.read_rpm()
 
 # --------------------------------
