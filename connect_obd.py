@@ -7,6 +7,9 @@ ports = obd.scan_serial()
 
 print(ports)
 
+connection = obd.OBD(ports[1])
+
+
 #cmd = obd.commands.SPEED # select an OBD command (sensor)
 
 #response = connection.query(cmd) # send the command, and parse the response
