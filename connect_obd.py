@@ -3,10 +3,9 @@ from obd import OBDStatus
 
 print("🔍 Buscando conexión OBD2...")
 
-connection = obd.OBD() # auto-connects to USB or RF port
+ports = obd.scan_serial()
 
-# successful communication with the ELM327 adapter
-print(OBDStatus.ELM_CONNECTED) # "ELM Connected"
+print(ports)
 
 #cmd = obd.commands.SPEED # select an OBD command (sensor)
 
