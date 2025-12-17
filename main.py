@@ -6,7 +6,7 @@ from backends.obd_backend import OBDBackend
 # --------------------------------
 # Selección de backend
 # --------------------------------
-USE_SIMULATOR = True
+USE_SIMULATOR = False
 
 if USE_SIMULATOR:
     backend = SimulatorBackend(weak_cyl=3, misfire_cyl=6)
