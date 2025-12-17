@@ -32,7 +32,7 @@ try:
         print("🔍 Recuperando códigos de diagnóstico de fallas (DTCs)...")
         dtc_response = connection.query(obd.commands.GET_DTC)
 
-        if dtc_response.is_successful():
+        if dtc_response and dtc_response.value:
             dtcs = dtc_response.value  # Lista de códigos DTC
             if dtcs:
                 print("✅ Códigos de diagnóstico encontrados:")
@@ -41,7 +41,7 @@ try:
             else:
                 print("✅ No se encontraron códigos de diagnóstico.")
         else:
-            print("❌ Error al recuperar los códigos de diagnóstico.")
+            print("❌ Error al recuperar los códigos de diagnóstico o no hay datos disponibles.")
 
     else:
         print("❌ No se pudo conectar al vehículo. Verifique el puerto y el dispositivo.")
