@@ -1,18 +1,20 @@
 import obd
-from obd import OBDStatus
 
 print("🔍 Buscando conexión OBD2...")
 
 ports = obd.scan_serial()
+print("Puertos encontrados:", ports)
 
-print(ports)
+# FORScan usaba COM12 → lo forzamos
+connection = obd.OBD(
+    port="COM12",
+    baudrate=38400,
+    fast=False,
+    timeout=5
+)
 
-connection = obd.OBD(ports[1])
-
-
-#cmd = obd.commands.SPEED # select an OBD command (sensor)
-
-#response = connection.query(cmd) # send the command, and parse the response
-
-#print(response.value) # returns unit-bearing values thanks to Pint
-#print(response.value.to("mph")) # user-friendly unit conversions
+if connection.is_connected():
+    print("✅ Conectado al vehículo")
+    print("Protocolo:", connection.protocol_name())
+else:
+    print("❌ No se pudo conectar")
