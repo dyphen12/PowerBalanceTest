@@ -21,7 +21,7 @@ class PowerBalance:
         if rpm is None:
             return self.power
 
-        self.rpm_history.append(rpm)
+        self.rpm_history.append(rpm.value)
         mean_rpm = sum(self.rpm_history) / len(self.rpm_history)
         # Por ahora: simulación simple, todos los cilindros iguales
         self.power = [mean_rpm - rpm for _ in range(8)]
