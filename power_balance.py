@@ -1,62 +1,53 @@
-# power_balance.py
-import time
-import numpy as np
+from backends.obd_backend import OBDBackend
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from backends.obd_backend import OBDBackend
+import time
 
-# Orden de encendido F150 5.4L 3V (V8)
-F150_ORDER = [1, 3, 7, 2, 6, 5, 4, 8]
+class PowerBalanceTest:
+    def __init__(self):
+        print("⚙️ Intentando conectar al dispositivo OBD2...")
+        self.backend = OBDBackend()
+        if not self.backend.connect():
+            raise ConnectionError("❌ No se pudo conectar al dispositivo OBD2.")
 
-class PowerBalance:
-    def __init__(self, obd_backend, buffer_size=8):
-        self.obd = obd_backend
-        self.buffer_size = buffer_size  # Cuántos ciclos para promedio
-        self.rpm_history = []
-        self.power = np.zeros(8)
+    def read_cylinder_data(self):
+        """
+        Lee los datos de RPM para cada cilindro en tiempo real.
+        """
+        results = []
+        for cyl in range(1, 9):
+            rpm = self.backend.read_rpm()
+            if rpm is not None:
+                results.append(rpm.magnitude)  # Suponiendo que el valor tiene magnitud
+            else:
+                results.append(0)  # Valor predeterminado si falla la lectura
+            time.sleep(0.5)  # Delay entre lecturas
+        return results
 
-    def update(self):
-        rpm = self.obd.read_rpm()
-        if rpm is None:
-            return self.power
-        rpm = rpm.magnitude  # quitar unidades Pint
-        self.rpm_history.append(rpm)
-        
-        if len(self.rpm_history) > self.buffer_size:
-            self.rpm_history.pop(0)
-        
-        # Inferir contribución de cada cilindro
-        # Simplificado: variación del RPM por cilindro
-        mean_rpm = np.mean(self.rpm_history)
-        diff = [mean_rpm - rpm for _ in range(8)]
-        
-        # Mapear al orden de encendido
-        self.power = np.array(diff)
-        return self.power
+    def animate(self, i, bars):
+        """
+        Función de animación para actualizar los datos en el gráfico.
+        """
+        print("🔄 Actualizando datos en tiempo real...")
+        results = self.read_cylinder_data()
+        for bar, value in zip(bars, results):
+            bar.set_height(value)
 
-def animate(obd_backend):
-    pb = PowerBalance(obd_backend)
-    
-    fig, ax = plt.subplots()
-    ax.set_ylim(-60, 40)
-    ax.set_xlim(1, 8)
-    ax.set_xlabel("Cilindro")
-    ax.set_ylabel("RPM delta")
-    ax.set_title("Power Balance Inferido")
-    
-    line, = ax.plot([], [], marker='o', color='blue', lw=2)
-    
-    def update_plot(frame):
-        power = pb.update()
-        line.set_data(range(1, 9), power)
-        return line,
-    
-    ani = FuncAnimation(fig, update_plot, interval=500, blit=True)
-    plt.show()
+    def run_test(self):
+        """
+        Ejecuta la prueba de balance de potencia con un gráfico animado.
+        """
+        print("🔄 Ejecutando prueba con gráfico animado...")
+        fig, ax = plt.subplots()
+        ax.set_title("Prueba de Balance de Potencia (Tiempo Real)")
+        ax.set_xlabel("Cilindros")
+        ax.set_ylabel("RPM")
+        ax.set_ylim(0, 5000)  # Ajustar el rango de RPM según sea necesario
+        bars = ax.bar(range(1, 9), [0] * 8, tick_label=[f"C{i}" for i in range(1, 9)])
+
+        ani = FuncAnimation(fig, self.animate, fargs=(bars,), interval=1000)
+        plt.show()
 
 if __name__ == "__main__":
-    obd = OBDBackend()
-    if obd.connect():
-        animate(obd)
-    else:
-        print("❌ No se pudo conectar al OBD2")
+    test = PowerBalanceTest()
+    test.run_test()
