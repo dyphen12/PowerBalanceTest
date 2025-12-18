@@ -1,58 +1,63 @@
-# power_balance_real.py
+# power_balance.py
+import time
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from collections import deque
-import time
 from backends.obd_backend import OBDBackend
 
 class PowerBalance:
-    def __init__(self, obd_backend, buffer_size=5):
-        self.obd = obd_backend
-        self.buffer_size = buffer_size
-        self.rpm_history = deque(maxlen=buffer_size)
-        self.power = [0] * 8  # Inicializa para 8 cilindros
+    def __init__(self, backend, num_cylinders=8, history_len=10):
+        self.backend = backend
+        self.num_cylinders = num_cylinders
+        self.history_len = history_len
+        self.rpm_history = []  # aquí guardaremos solo valores numéricos
+        self.power = [0] * num_cylinders
 
     def update(self):
-        """
-        Lee el RPM y calcula la diferencia para cada cilindro
-        (placeholder de Power Balance)
-        """
-        rpm = self.obd.read_rpm()  # ya es un float
-        if rpm is None:
+        rpm_resp = self.backend.read_rpm()
+        if rpm_resp is None:
             return self.power
 
-        self.rpm_history.append(rpm.value)
+        # Obtener valor numérico de las RPM
+        rpm_val = rpm_resp.magnitude if hasattr(rpm_resp, 'magnitude') else rpm_resp
+
+        # Guardar en el historial limitado
+        self.rpm_history.append(rpm_val)
+        if len(self.rpm_history) > self.history_len:
+            self.rpm_history.pop(0)
+
+        # Calcular RPM promedio
         mean_rpm = sum(self.rpm_history) / len(self.rpm_history)
-        # Por ahora: simulación simple, todos los cilindros iguales
-        self.power = [mean_rpm - rpm for _ in range(8)]
+
+        # Power balance: diferencia del promedio
+        self.power = [mean_rpm - rpm_val for _ in range(self.num_cylinders)]
         return self.power
 
-def animate(obd_backend):
-    pb = PowerBalance(obd_backend)
-
-    fig, ax = plt.subplots()
-    ax.set_title("Power Balance Test (RPM en tiempo real)")
-    ax.set_xlabel("Cilindros")
-    ax.set_ylabel("Dif. RPM")
-    ax.set_xticks(range(1, 9))
-    ax.set_ylim(-100, 100)
-
-    line, = ax.plot([], [], 'o-', color='red', lw=2)
+def animate(backend):
+    pb = PowerBalance(backend)
     
+    fig, ax = plt.subplots()
+    bars = ax.bar(range(pb.num_cylinders), [0]*pb.num_cylinders)
+    ax.set_ylim(-1000, 1000)  # ajustar según las RPM de tu motor
+    ax.set_xlabel("Cilindro")
+    ax.set_ylabel("Diferencia con RPM promedio")
+    ax.set_title("Power Balance en tiempo real")
+
     def update_plot(frame):
         power = pb.update()
-        line.set_data(range(1, 9), power)
-        return line,
+        for bar, val in zip(bars, power):
+            bar.set_height(val)
+        return bars
 
     ani = FuncAnimation(fig, update_plot, interval=300, blit=False)
     plt.show()
 
 if __name__ == "__main__":
     backend = OBDBackend()
-    if backend.connect():
-        try:
-            animate(backend)
-        finally:
-            backend.disconnect()
-    else:
+    if not backend.connect():
         print("❌ No se pudo conectar al OBD2.")
+        exit()
+
+    try:
+        animate(backend)
+    finally:
+        backend.disconnect()
