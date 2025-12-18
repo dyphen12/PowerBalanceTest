@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from collections import deque
 import time
-
-# tu backend OBD2
 from backends.obd_backend import OBDBackend
 
 class PowerBalance:
@@ -17,15 +15,15 @@ class PowerBalance:
     def update(self):
         """
         Lee el RPM y calcula la diferencia para cada cilindro
-        (simulación de Power Balance simple)
+        (placeholder de Power Balance)
         """
-        rpm = self.obd.read_rpm()
+        rpm = self.obd.read_rpm()  # ya es un float
         if rpm is None:
             return self.power
 
         self.rpm_history.append(rpm)
         mean_rpm = sum(self.rpm_history) / len(self.rpm_history)
-        # Simple: cada cilindro difiere del promedio (placeholder)
+        # Por ahora: simulación simple, todos los cilindros iguales
         self.power = [mean_rpm - rpm for _ in range(8)]
         return self.power
 
@@ -37,7 +35,7 @@ def animate(obd_backend):
     ax.set_xlabel("Cilindros")
     ax.set_ylabel("Dif. RPM")
     ax.set_xticks(range(1, 9))
-    ax.set_ylim(-100, 100)  # ajusta según tu vehículo
+    ax.set_ylim(-100, 100)
 
     line, = ax.plot([], [], 'o-', color='red', lw=2)
     
@@ -46,12 +44,15 @@ def animate(obd_backend):
         line.set_data(range(1, 9), power)
         return line,
 
-    ani = FuncAnimation(fig, update_plot, interval=500, blit=False)
+    ani = FuncAnimation(fig, update_plot, interval=300, blit=False)
     plt.show()
 
 if __name__ == "__main__":
-    obd_backend = OBDBackend()
-    if obd_backend.connect():
-        animate(obd_backend)
+    backend = OBDBackend()
+    if backend.connect():
+        try:
+            animate(backend)
+        finally:
+            backend.disconnect()
     else:
         print("❌ No se pudo conectar al OBD2.")
