@@ -5,7 +5,7 @@ from collections import deque
 import time
 
 # tu backend OBD2
-from obd_backend import OBDBackend
+from backends.obd_backend import OBDBackend
 
 class PowerBalance:
     def __init__(self, obd_backend, buffer_size=5):
